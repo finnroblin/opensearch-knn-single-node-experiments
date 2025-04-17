@@ -26,7 +26,9 @@ services:
         hard: 65536
     volumes:
       - test:/usr/share/opensearch/data
-      - share-data:/share-data
+      - type: bind
+        source: /share-data
+        target: /share-data
     ports:
       - 9200:9200
       - 9600:9600
@@ -83,7 +85,9 @@ services:
       - metrics
       - test
     volumes:
-      - share-data:/share-data
+      - type: bind
+        source: /share-data
+        target: /share-data
     networks:
       - test-net
     environment:
@@ -102,13 +106,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${SHARE_DATA_PATH}/os-data
+      device: /os-data
   metrics:
-  share-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${SHARE_DATA_PATH}
 networks:
   test-net:

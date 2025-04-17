@@ -2,6 +2,13 @@
 
 set -x
 
+echo "Current user:"
+id
+echo "Listing /share-data:"
+ls -la /share-data
+echo "Listing /share-data/osb:"
+ls -la /share-data/osb
+
 DEFAULT_ENDPOINT="test:9200"
 
 # Parse some arguments
@@ -10,6 +17,9 @@ export PROCEDURE="$OSB_PROCEDURE"
 export PARAMS_FILE="$OSB_PARAMS"
 export TEST_ENDPOINT=${ENDPOINT:-"${DEFAULT_ENDPOINT}"}
 export WORKLOAD_REPO=${OSB_WORKLOADS_REPO}
+echo "Workload repo: "
+echo $WORKLOAD_REPO
+
 export IS_LOCAL=1
 if [ -n "$ENDPOINT" ]; then
   IS_LOCAL=0
@@ -35,12 +45,24 @@ RESULTS_PATH=${SHARED_PATH}/results
 OSB_PATH=${SHARED_PATH}/osb
 STOP_PROCESS_PATH=${SHARED_PATH}/stop.txt
 
-mkdir -p -m 777 ${RESULTS_PATH}
-
 WORKLOAD_ARG=""
-if [ -n "$WORKLOAD_REPO" ]; then
-    WORKLOAD_ARG="--workload-repository=custom"
+if [ ! -z "${WORKLOAD_REPO}" ] && [ "${WORKLOAD_REPO}" != "" ]; then
+    # Clean up any existing repo
+    rm -rf /opensearch-benchmark/osb_repo
+
+    # Clone the repository
+    echo "Cloning workload repository..."
+    git clone ${WORKLOAD_REPO} /opensearch-benchmark/osb_repo
+
+    if [ $? -eq 0 ]; then
+        echo "Successfully cloned repository"
+        WORKLOAD_ARG="--workload-path=/opensearch-benchmark/osb_repo/vectorsearch"
+    else
+        echo "Failed to clone repository"
+        exit 1
+    fi
 fi
+
 
 # Initialize OSB so benchmark.ini gets created and patch benchmark.ini
 if [ ! -f "~/.benchmark/benchmark.ini" ]; then
@@ -59,20 +81,19 @@ if [ ! -f "~/.benchmark/benchmark.ini" ]; then
   if [ -n "$WORKLOAD_REPO" ]; then
       echo "" >> /tmp/benchmark.ini.patch
       echo "" >> /tmp/benchmark.ini.patch
-      echo "[workloads]" >> /tmp/benchmark.ini.patch
-      echo "custom.url=${WORKLOAD_REPO}" >> /tmp/benchmark.ini.patch
+ #     echo "[workloads]" >> /tmp/benchmark.ini.patch
+ #     echo "custom.url=${WORKLOAD_REPO}" >> /tmp/benchmark.ini.patch
   fi
 
   mkdir -p -m 777 ~/.benchmark
   cp /tmp/benchmark.ini.patch ~/.benchmark/benchmark.ini
-  opensearch-benchmark execute-test ${WORKLOAD_ARG} > /dev/null 2>&1
+ # opensearch-benchmark execute-test ${WORKLOAD_ARG}
 fi
 cat ~/.benchmark/benchmark.ini
 # Run OSB and write output to a particular file in results
 echo "Running OSB..."
 opensearch-benchmark execute-test ${WORKLOAD_ARG} \
     --target-hosts ${TEST_ENDPOINT} \
-    --workload vectorsearch \
     --workload-params ${PARAMS_FILE} \
     --pipeline benchmark-only \
     --test-procedure=${PROCEDURE} \
@@ -81,6 +102,10 @@ opensearch-benchmark execute-test ${WORKLOAD_ARG} \
     --results-file=${RESULTS_PATH}/osb-results-${RUN_ID}.csv | tee /tmp/output.txt
 
 cp /opensearch-benchmark/.benchmark/logs/benchmark.log ${OSB_PATH}/benchmark-${RUN_ID}.log
+
+echo "Checking workload directory:"
+ls -la /opensearch-benchmark/.benchmark/benchmarks/workloads/custom/vectorsearch/indices || echo "Directory doesn't exist"
+ls -la /opensearch-benchmark/.benchmark/benchmarks/workloads/
 
 #TODO: Make this configurable.
 if [ ${IS_LOCAL} = 1 ]; then
