@@ -90,13 +90,29 @@ if [ ! -f "~/.benchmark/benchmark.ini" ]; then
  # opensearch-benchmark execute-test ${WORKLOAD_ARG}
 fi
 cat ~/.benchmark/benchmark.ini
+
+echo "upping number of index threads"
+
+curl -X PUT "${TEST_ENDPOINT}/_cluster/settings?pretty" -H 'Content-Type: application/json' -d'
+{
+  "persistent" : {
+    "knn.algo_param.index_thread_qty" : 24
+  }
+}
+'
+
 # Run OSB and write output to a particular file in results
+
+
+export CLIENT_OPTIONS="max_retries:5,retry_on_timeout:true,retry_on_error:True,timeout:10000"
+
 echo "Running OSB..."
 opensearch-benchmark execute-test ${WORKLOAD_ARG} \
     --target-hosts ${TEST_ENDPOINT} \
     --workload-params ${PARAMS_FILE} \
     --pipeline benchmark-only \
     --test-procedure=${PROCEDURE} \
+    --client-options=${CLIENT_OPTIONS} \
     --kill-running-processes \
     --results-format=csv \
     --results-file=${RESULTS_PATH}/osb-results-${RUN_ID}.csv | tee /tmp/output.txt
