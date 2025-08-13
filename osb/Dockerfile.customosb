@@ -1,8 +1,31 @@
 FROM opensearchproject/opensearch-benchmark:latest
 
 USER 0
-RUN ["apt-get", "update"]
-RUN ["apt-get", "install", "jq", "curl", "--assume-yes"]
+RUN apt-get update && apt-get install -y \
+    jq \
+    curl \
+    make \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libffi-dev \
+    liblzma-dev \
+    git
+
+# Install pyenv
+RUN curl https://pyenv.run | bash
+ENV PATH="/root/.pyenv/bin:$PATH"
+ENV PYENV_ROOT="/root/.pyenv"
+
 USER 1000
 COPY osb-entry-point.sh /
 COPY benchmark.ini.patch /
