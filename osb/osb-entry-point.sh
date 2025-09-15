@@ -103,23 +103,6 @@ curl -X PUT "${TEST_ENDPOINT}/_cluster/settings?pretty" -H 'Content-Type: applic
 
 # Run OSB and write output to a particular file in results
 
-# Clone and build OSB according to the developer guide
-git clone https://github.com/finnroblin/opensearch-benchmark.git /opensearch-benchmark/source
-
-cd /opensearch-benchmark/source
-
-# Initialize pyenv
-export PATH="/root/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv init --path)"
-
-# Build OSB locally following the developer guide
-echo "Building OSB locally..."
-make develop
-
-# Activate the virtual environment
-source .venv/bin/activate
-
 
 export CLIENT_OPTIONS="max_retries:5,retry_on_timeout:true,retry_on_error:True,timeout:10000"
 
