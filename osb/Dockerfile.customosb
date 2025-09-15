@@ -1,4 +1,4 @@
-FROM opensearchproject/opensearch-benchmark:latest
+FROM opensearchproject/opensearch-benchmark:1.15.0
 
 USER 0
 RUN apt-get update && apt-get install -y \

@@ -108,7 +108,7 @@ echo "Building OSB locally..."
 make develop
 
 # Activate the virtual environment
-# source .venv/bin/activate
+source .venv/bin/activate
 
 
 echo "Running OSB..."
