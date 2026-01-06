@@ -94,7 +94,8 @@ cat ~/.benchmark/benchmark.ini
 
 
 # Clone and build OSB according to the developer guide
-git clone https://github.com/adityamachiroutu/opensearch-benchmark.git /opensearch-benchmark/source
+# git clone https://github.com/adityamachiroutu/opensearch-benchmark.git /opensearch-benchmark/source
+git clone https://github.com/opensearch-project/opensearch-benchmark.git /opensearch-benchmark/source
 
 cd /opensearch-benchmark/source
 
